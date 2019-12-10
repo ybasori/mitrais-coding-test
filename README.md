@@ -1,5 +1,11 @@
 # Mitrais Coding Test
 
+The Backend uses PHP - Codeigniter 3 and the database uses MySQL.
+
+
+The Frontend uses ReactJS.
+
+
 ## Backend Installation
 
 Requirement:
