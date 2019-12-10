@@ -1,11 +1,16 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useReducer} from 'react';
 import "./Register.css";
 import Auth from '../_services/Auth';
-import {
-  Link
-} from "react-router-dom";
+import { Link } from "react-router-dom";
+import { authRegisterInitialState, authRegisterReducer } from "./../_reducers/AuthRegister";
+import { authEmailUniqueInitialState, authEmailUniqueReducer } from "./../_reducers/AuthEmailUnique";
+import { authMobileUniqueInitialState, authMobileUniqueReducer } from "./../_reducers/AuthMobileUnique";
 
 function Register() {
+    const [authRegisterState, authRegisterDispatch] = useReducer(authRegisterReducer, authRegisterInitialState);
+    const [authEmailUniqueState, authEmailUniqueDispatch] = useReducer(authEmailUniqueReducer, authEmailUniqueInitialState);
+    const [authMobileUniqueState, authMobileUniqueDispatch] = useReducer(authMobileUniqueReducer, authMobileUniqueInitialState);
+
     const [mobile, setMobile] = useState('');
     const [mobileError, setMobileError] = useState([]);
     const [mobileClass, setMobileClass] = useState("form-control");
@@ -33,10 +38,6 @@ function Register() {
 
     const [gender, setGender] = useState('');
 
-    const [isLoading, setIsLoading] = useState(false);
-
-    const [isLoginButton, setIsLoginButton] = useState(false);
-
     useEffect(() => {
         document.title = "Registration";
 
@@ -57,7 +58,20 @@ function Register() {
         
     },[listMonth.length, listYear.length]);
 
-
+    const mobileUniqueSuccess = () => {
+        let errors = mobileError;
+        if(!authMobileUniqueState.data){
+            errors.push('mobile number has already been taken')
+        }
+        if(errors.length>0){
+            setMobileClass("form-control is-invalid");
+        }
+        else{
+            setMobileClass("form-control is-valid");
+        }
+        setMobileError(errors);
+        authMobileUniqueDispatch({type:'AUTH_MOBILE_UNIQUE_RESET'});
+    }
 
     const validateMobile = (value) => {
         let errors = [];
@@ -68,18 +82,7 @@ function Register() {
             errors.push('mobile number should be indonesian phone number')
         }
         else{
-            Auth.mobileUnique(value.replace("+","")).then((res)=>{
-                if(!res.data.unique){
-                    errors.push('mobile number has already been taken')
-                }
-                if(errors.length>0){
-                    setMobileClass("form-control is-invalid");
-                }
-                else{
-                    setMobileClass("form-control is-valid");
-                }
-                setMobileError(errors);
-            }).catch((err)=>{});
+            Auth.mobileUnique(authMobileUniqueDispatch, value.replace("+",""));
         }
         if(errors.length>0){
             setMobileClass("form-control is-invalid");
@@ -121,6 +124,22 @@ function Register() {
         setLastname(value);
     }
 
+    const emailUniqueSuccess = () => {
+        let errors = emailError;
+        if(!authEmailUniqueState.data){
+            errors.push('email has already been taken');
+        }
+        if(errors.length>0){
+            setEmailClass("form-control is-invalid");
+        }
+        else{
+            setEmailClass("form-control is-valid");
+        }
+        setEmailError(errors);
+        authEmailUniqueDispatch({type:'AUTH_EMAIL_UNIQUE_RESET'});
+
+    }
+
     const validateEmail = (value) => {
         let errors = [];
         if(value===""){
@@ -130,18 +149,7 @@ function Register() {
             errors.push('invalid email')
         }
         else{
-            Auth.emailUnique(value).then((res)=>{
-                if(!res.data.unique){
-                    errors.push('email has already been taken')
-                }
-                if(errors.length>0){
-                    setEmailClass("form-control is-invalid");
-                }
-                else{
-                    setEmailClass("form-control is-valid");
-                }
-                setEmailError(errors);
-            }).catch((err)=>{});
+            Auth.emailUnique(authEmailUniqueDispatch, value);
         }
         
         if(errors.length>0){
@@ -155,21 +163,25 @@ function Register() {
     }
 
     const onChangeMobile = (e) => {
+        authRegisterDispatch({type:'AUTH_REGISTER_RESET'});
         let value = e.target.value;
         validateMobile(value);
     }
 
     const onChangeFirstname = (e) => {
+        authRegisterDispatch({type:'AUTH_REGISTER_RESET'});
         let value = e.target.value;
         validateFirstname(value);
     }
 
     const onChangeLastname = (e) => {
+        authRegisterDispatch({type:'AUTH_REGISTER_RESET'});
         let value = e.target.value;
         validateLastname(value);
     }
 
     const onChangeMonth = (e) => {
+        authRegisterDispatch({type:'AUTH_REGISTER_RESET'});
         let m = e.target.value;
         let y = (new Date()).getFullYear();
         if(year!==''){
@@ -201,6 +213,7 @@ function Register() {
     }
 
     const onChangeYear = (e) => {
+        authRegisterDispatch({type:'AUTH_REGISTER_RESET'});
         let y = e.target.value;
         let m = ((new Date()).getMonth()+1).toString();
         if(month!==''){
@@ -211,10 +224,12 @@ function Register() {
     }
 
     const onChangeDate = (e) => {
+        authRegisterDispatch({type:'AUTH_REGISTER_RESET'});
         setDate(e.target.value);
     }
 
     const onChangeEmail = (e) => {
+        authRegisterDispatch({type:'AUTH_REGISTER_RESET'});
         let value = e.target.value;
         validateEmail(value);
     }
@@ -242,25 +257,23 @@ function Register() {
             if(gender!==''){
                 data.gender = gender;
             }
-
             
-            setIsLoading(true);
-            Auth.register(data).then((res)=>{
-                setIsLoading(false);
-                setIsLoginButton(true);
-            }).catch((err)=>{
-                setIsLoading(false);
-            });
+            Auth.register(authRegisterDispatch, data);
         }
         
     }
 
     return (
         <>
+            {!authMobileUniqueState.isLoading && authMobileUniqueState.data!==null ? <>{mobileUniqueSuccess()}</>:<></>}
+            {!authEmailUniqueState.isLoading && authEmailUniqueState.data!==null ? <>{emailUniqueSuccess()}</>:<></>}
             <div className="row justify-content-md-center">
                 <div className="col-md-7">
                     <div className="card highlight">
                         <div className="card-body">
+                            {!authRegisterState.isLoading && authRegisterState.error!==null ? <>
+                            <div className="alert alert-danger">{authRegisterState.error}</div>
+                            </>:<></>}
                             <h1>Registration</h1>
                             <form onSubmit={onSubmit}>
                                 <div className="form-group row">
@@ -361,7 +374,7 @@ function Register() {
                                     </div>
                                 </div>
                                 <div className="form-group">
-                                    {(isLoading)?
+                                    {(authRegisterState.isLoading)?
                                         <button className="btn-primary form-control" disabled><i className="fas fa-circle-notch fa-spin"></i></button>
                                         :
                                         <button className="btn btn-primary form-control">Register</button>
@@ -370,7 +383,7 @@ function Register() {
                                 </div>
                             </form>
                         </div>
-                        {isLoginButton?
+                        {!authRegisterState.isLoading && authRegisterState.data?
                         <div style={{position: "absolute", backgroundColor: "#fff", width: "100%", height: "100%", top: 0, opacity: 0.5}}></div>
                         :
                         <></>
@@ -385,7 +398,7 @@ function Register() {
                         <div className="col-md-7">
                             <div className="card highlight">
                                 <div className="card-body">
-                                    {(isLoginButton)?
+                                    {(!authRegisterState.isLoading && authRegisterState.data)?
                                     <Link to="/login" className="btn btn-primary btn-block">Login</Link>
                                     :
                                     <></>
