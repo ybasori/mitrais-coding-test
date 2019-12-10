@@ -6,6 +6,14 @@ The Backend uses PHP - Codeigniter 3 and the database uses MySQL.
 The Frontend uses ReactJS.
 
 
+Overview:
+- (Backend Installation)[#backend-installation]
+- (Backend Configuration)[#backend-configuration]
+- (Frontend Installation)[#frontend-installation]
+- (Frontend Configuration)[#frontend-configuration]
+- (Run)[#run]
+
+
 ## Backend Installation
 
 Requirement:
@@ -82,7 +90,7 @@ export default axios.create({
 
 change baseURL value that suits your API URL
 
-## Get Started
+## Run
 
 ```bash
 cd client
