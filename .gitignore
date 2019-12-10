@@ -3,3 +3,4 @@ client/yarn.lock
 client/yarn-error.log
 
 server/vendor
+server/composer.lock
